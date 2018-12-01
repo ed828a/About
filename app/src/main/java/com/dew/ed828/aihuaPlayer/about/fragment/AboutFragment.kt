@@ -1,4 +1,4 @@
-package com.dew.ed828.about.fragment
+package com.dew.ed828.aihuaPlayer.about.fragment
 
 import android.content.Context
 import android.content.Intent
@@ -10,8 +10,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
-import com.dew.ed828.about.R
-import com.dew.ed828.about.util.AppVersion
+import com.dew.ed828.aihuaPlayer.about.R
+import com.dew.ed828.aihuaPlayer.util.AppVersion
 import kotlinx.android.synthetic.main.fragment_about.view.*
 
 /**

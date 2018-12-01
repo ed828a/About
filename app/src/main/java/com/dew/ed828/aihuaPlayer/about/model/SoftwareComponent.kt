@@ -1,4 +1,4 @@
-package com.dew.ed828.about.model
+package com.dew.ed828.aihuaPlayer.about.model
 
 import android.os.Parcel
 import android.os.Parcelable

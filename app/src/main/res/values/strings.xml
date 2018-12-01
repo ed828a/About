@@ -368,8 +368,8 @@
     </string>
     <string name="privacy_policy_url" translatable="false">https://newpipe.schabi.org/legal/privacy/</string>
     <string name="read_privacy_policy">Read privacy policy</string>
-    <string name="app_license_title">NewPipe\'s License</string>
-    <string name="app_license">NewPipe is copyleft libre software: You can use, study share and improve it at will.
+    <string name="app_license_title">Aihua YouTube Player\'s License</string>
+    <string name="app_license">Aihua YouTube Player is copyleft libre software: You can use, study share and improve it at will.
         Specifically you can redistribute and/or modify it under the terms of the GNU General Public License as
         published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
         version.

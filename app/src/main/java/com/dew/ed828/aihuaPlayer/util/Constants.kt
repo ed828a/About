@@ -1,4 +1,4 @@
-package com.dew.ed828.about.util
+package com.dew.ed828.aihuaPlayer.util
 
 /**
  *

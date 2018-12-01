@@ -1,4 +1,4 @@
-package com.dew.ed828.about.fragment
+package com.dew.ed828.aihuaPlayer.about.fragment
 
 import android.app.Activity
 import android.content.Context
@@ -7,11 +7,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.*
-import com.dew.ed828.about.R
-import com.dew.ed828.about.model.License
-import com.dew.ed828.about.model.SoftwareComponent
-import com.dew.ed828.about.model.StandardLicenses
-import com.dew.ed828.about.util.LicenseFragmentHelper
+import com.dew.ed828.aihuaPlayer.about.R
+import com.dew.ed828.aihuaPlayer.about.model.License
+import com.dew.ed828.aihuaPlayer.about.model.SoftwareComponent
+import com.dew.ed828.aihuaPlayer.about.model.StandardLicenses
+import com.dew.ed828.aihuaPlayer.util.LicenseFragmentHelper
 import kotlinx.android.synthetic.main.fragment_license.view.*
 import kotlinx.android.synthetic.main.item_software_component.view.*
 import java.util.*
@@ -77,7 +77,7 @@ class LicenseFragment : Fragment() {
         return rootView
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu, view: View, menuInfo: ContextMenu.ContextMenuInfo) {
+    override fun onCreateContextMenu(menu: ContextMenu, view: View, menuInfo: ContextMenu.ContextMenuInfo?) {
         val inflater = activity!!.menuInflater
         val component = view.tag as SoftwareComponent
         menu.setHeaderTitle(component.name)

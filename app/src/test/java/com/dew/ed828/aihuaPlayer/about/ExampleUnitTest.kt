@@ -1,4 +1,4 @@
-package com.dew.ed828.about
+package com.dew.ed828.aihuaPlayer.about
 
 import org.junit.Test
 

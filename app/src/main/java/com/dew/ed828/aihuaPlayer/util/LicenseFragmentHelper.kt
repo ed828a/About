@@ -1,12 +1,12 @@
-package com.dew.ed828.about.util
+package com.dew.ed828.aihuaPlayer.util
 
 import android.app.Activity
 import android.content.Context
 import android.os.AsyncTask
 import android.support.v7.app.AlertDialog
 import android.webkit.WebView
-import com.dew.ed828.about.R
-import com.dew.ed828.about.model.License
+import com.dew.ed828.aihuaPlayer.about.R
+import com.dew.ed828.aihuaPlayer.about.model.License
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.ref.WeakReference

@@ -1,14 +1,14 @@
-package com.dew.ed828.about.adapter
+package com.dew.ed828.aihuaPlayer.about.adapter
 
 import android.content.Context
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentPagerAdapter
-import com.dew.ed828.about.R
-import com.dew.ed828.about.fragment.AboutFragment
-import com.dew.ed828.about.fragment.LicenseFragment
-import com.dew.ed828.about.model.SoftwareComponent
-import com.dew.ed828.about.model.StandardLicenses
+import com.dew.ed828.aihuaPlayer.about.R
+import com.dew.ed828.aihuaPlayer.about.fragment.AboutFragment
+import com.dew.ed828.aihuaPlayer.about.fragment.LicenseFragment
+import com.dew.ed828.aihuaPlayer.about.model.SoftwareComponent
+import com.dew.ed828.aihuaPlayer.about.model.StandardLicenses
 
 /**
  *

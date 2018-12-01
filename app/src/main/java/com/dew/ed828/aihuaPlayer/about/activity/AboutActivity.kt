@@ -1,15 +1,14 @@
-package com.dew.ed828.about.activity
+package com.dew.ed828.aihuaPlayer.about.activity
 
-import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.FragmentPagerAdapter
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
-import com.dew.ed828.about.R
-import com.dew.ed828.about.adapter.SectionsPagerAdapter
-import com.dew.ed828.about.util.ThemeHelper
+import com.dew.ed828.aihuaPlayer.about.R
+import com.dew.ed828.aihuaPlayer.about.adapter.SectionsPagerAdapter
+import com.dew.ed828.aihuaPlayer.util.ThemeHelper
 import kotlinx.android.synthetic.main.activity_about.*
 
 /**

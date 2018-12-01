@@ -1,4 +1,4 @@
-package com.dew.ed828.about.util
+package com.dew.ed828.aihuaPlayer.util
 
 import android.content.Context
 import android.preference.PreferenceManager
@@ -7,7 +7,7 @@ import android.support.annotation.StyleRes
 import android.support.v4.content.ContextCompat
 import android.support.v7.view.ContextThemeWrapper
 import android.util.TypedValue
-import com.dew.ed828.about.R
+import com.dew.ed828.aihuaPlayer.about.R
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.StreamingService
 import org.schabi.newpipe.extractor.exceptions.ExtractionException

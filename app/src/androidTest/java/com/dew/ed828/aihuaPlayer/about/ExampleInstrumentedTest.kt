@@ -1,4 +1,4 @@
-package com.dew.ed828.about
+package com.dew.ed828.aihuaPlayer.about
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getTargetContext()
-        assertEquals("com.dew.ed828.about", appContext.packageName)
+        assertEquals("com.dew.ed828.aihuaPlayer.about", appContext.packageName)
     }
 }

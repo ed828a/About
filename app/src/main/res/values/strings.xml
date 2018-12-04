@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">About</string>
+    <string name="app_name" translatable="false">EdYouTubePlayer</string>
     <string name="main_bg_subtitle">Tap search to get started</string>
     <string name="view_count_text">%1$s views</string>
     <string name="upload_date_text">Published on %1$s</string>
@@ -361,7 +361,7 @@
     <string name="website_title">Website</string>
     <string name="website_encouragement">Visit the NewPipe Website for more info and news.</string>
     <string name="website_url" translatable="false">https://newpipe.schabi.org/</string>
-    <string name="privacy_policy_title">NewPipe\'s Privacy Policy</string>
+    <string name="privacy_policy_title">Ed YouTube Player\'s Privacy Policy</string>
     <string name="privacy_policy_encouragement">The NewPipe project takes your privacy very seriously. Therefore, the
         app does not collect any data without your consent.\nNewPipe\'s privacy policy explains in detail what data is
         sent and stored when you send a crash report.
@@ -369,7 +369,8 @@
     <string name="privacy_policy_url" translatable="false">https://newpipe.schabi.org/legal/privacy/</string>
     <string name="read_privacy_policy">Read privacy policy</string>
     <string name="app_license_title">Aihua YouTube Player\'s License</string>
-    <string name="app_license">Aihua YouTube Player is copyleft libre software: You can use, study share and improve it at will.
+    <string name="app_license">Aihua YouTube Player is copyleft libre software: You can use, study share and improve it
+        at will.
         Specifically you can redistribute and/or modify it under the terms of the GNU General Public License as
         published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
         version.
@@ -534,7 +535,7 @@
 
     <!-- GDPR dialog -->
     <string name="start_accept_privacy_policy">In order to comply with the European General Data Protection Regulation
-        (GDPR), we herby draw your attention to NewPipe\'s privacy policy. Please read it carefully.\nYou must accept it
+        (GDPR), we herby draw your attention to Ed YouTube Player\'s privacy policy. Please read it carefully.\nYou must accept it
         to send us the bug report.
     </string>
     <string name="accept">Accept</string>

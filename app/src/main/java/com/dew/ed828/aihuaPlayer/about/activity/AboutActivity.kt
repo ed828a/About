@@ -10,6 +10,7 @@ import com.dew.ed828.aihuaPlayer.about.R
 import com.dew.ed828.aihuaPlayer.about.adapter.SectionsPagerAdapter
 import com.dew.ed828.aihuaPlayer.util.ThemeHelper
 import kotlinx.android.synthetic.main.activity_about.*
+import java.lang.IllegalArgumentException
 
 /**
  *
@@ -27,10 +28,6 @@ class AboutActivity : AppCompatActivity() {
          * may be best to switch to a
          * [android.support.v4.app.FragmentStatePagerAdapter].
          */
-//        private lateinit var mSectionsPagerAdapter: SectionsPagerAdapter
-
-        /**
-         */
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
             ThemeHelper.setTheme(this)
@@ -41,8 +38,6 @@ class AboutActivity : AppCompatActivity() {
             supportActionBar!!.setDisplayHomeAsUpEnabled(true)
             // Create the adapter that will return a fragment for each of the three
             // primary sections of the activity.
-//            mSectionsPagerAdapter = SectionsPagerAdapter(this, supportFragmentManager)
-
             // The viewPager that will host the section contents.
             // Set up viewPager with the sections adapter.
             viewPager.adapter = SectionsPagerAdapter(this, supportFragmentManager)
@@ -66,14 +61,17 @@ class AboutActivity : AppCompatActivity() {
                 }
 
                 R.id.actionSettings -> {
+                    // Todo: implement NavigationHelper
 //                    NavigationHelper.openSettings(this)
                     Toast.makeText(this, "you clicked ActionSettings.", Toast.LENGTH_SHORT).show()
                     true
                 }
 
                 R.id.actionShowDownloads ->{
+                    // Todo:
 //                    NavigationHelper.openDownloads(this)
                     Toast.makeText(this, "you clicked ActionShowDownloads.", Toast.LENGTH_SHORT).show()
+                    throw IllegalArgumentException("This is a testing ErrorActivity")
                     true
                 }
 

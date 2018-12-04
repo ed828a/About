@@ -5,12 +5,25 @@
 
     <application
             android:allowBackup="true"
+            android:name="com.dew.ed828.aihuaPlayer.EdApp"
+            android:logo="@mipmap/ic_launcher"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher"
             android:supportsRtl="true"
-            android:theme="@style/AppTheme" tools:ignore="GoogleAppIndexingWarning">
+            android:theme="@style/OpeningTheme"
+            tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".activity.AboutActivity">
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN"/>-->
+
+                <!--<category android:name="android.intent.category.LAUNCHER"/>-->
+            <!--</intent-filter>-->
+        </activity>
+        <activity android:name="com.dew.ed828.aihuaPlayer.report.activity.ErrorActivity">
+
+        </activity>
+        <activity android:name="com.dew.ed828.aihuaPlayer.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

@@ -11,7 +11,7 @@ import org.schabi.newpipe.extractor.Info
  *
  */
 
-class InfoCache private constructor()//no instance
+class InfoCache private constructor()
 {
 
     val size: Long
@@ -81,9 +81,8 @@ class InfoCache private constructor()//no instance
 
         private val lruCache = LruCache<String, CacheData>(MAX_ITEMS_ON_CACHE)
 
-        private fun keyOf(serviceId: Int, url: String): String {
-            return serviceId.toString() + url
-        }
+        private fun keyOf(serviceId: Int, url: String): String = serviceId.toString() + url
+
 
         private fun removeStaleCache() {
             for ((key, data) in InfoCache.lruCache.snapshot()) {

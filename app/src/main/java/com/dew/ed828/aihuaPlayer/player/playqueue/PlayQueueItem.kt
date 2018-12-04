@@ -13,7 +13,7 @@ import java.io.Serializable
  *
  * Created by Edward on 12/2/2018.
  *
- * Serializable should be replaced by Parcelable
+ * Todo: should Serializable  be replaced by Parcelable ?
  */
 
 class PlayQueueItem private constructor(

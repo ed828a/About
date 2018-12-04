@@ -166,17 +166,16 @@ object ExtractorHelper {
         loadFromNetwork: Single<I>
     ): Single<I> {
         var localLoadFromNetwork = loadFromNetwork
+
         checkServiceId(serviceId)
+
         localLoadFromNetwork = localLoadFromNetwork.doOnSuccess { info -> cache.putInfo(serviceId, url, info) }
 
         val load: Single<I> = if (forceLoad) {
             cache.removeInfo(serviceId, url)
             localLoadFromNetwork
         } else {
-            Maybe.concat(
-                ExtractorHelper.loadFromCache(serviceId, url),
-                localLoadFromNetwork.toMaybe()
-            )
+            Maybe.concat(ExtractorHelper.loadFromCache(serviceId, url), localLoadFromNetwork.toMaybe())
                 .firstElement() //Take the first valid
                 .toSingle()
         }
@@ -212,7 +211,7 @@ object ExtractorHelper {
             when (exception) {
                 is ReCaptchaException -> {
                     Toast.makeText(context, R.string.recaptcha_request_toast, Toast.LENGTH_LONG).show()
-                    // Todo:
+                    // Todo: un-comment those when implementation of ReCaptchaActivity
                     // Starting ReCaptcha Challenge Activity
 //                    val intent = Intent(context, ReCaptchaActivity::class.java)
 //                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -300,7 +299,7 @@ object ExtractorHelper {
                 return true
             }
         }
-        val temp = throwable.cause!!
+        Log.d(TAG, "hasExactCauseThrowable(): throwable.cause = ${throwable.cause}")
         throwable.cause?.let {
             cause = throwable.cause!!
             while (getCause !== cause) {
@@ -318,11 +317,11 @@ object ExtractorHelper {
     /**
      * Check if throwable have Interrupted* exception as one of its causes.
      */
-    fun isInterruptedCaused(throwable: Throwable): Boolean {
-        return ExtractorHelper.hasExactCauseThrowable(
+    fun isInterruptedCaused(throwable: Throwable): Boolean =
+        ExtractorHelper.hasExactCauseThrowable(
             throwable,
             InterruptedIOException::class.java,
             InterruptedException::class.java
         )
-    }
+
 }

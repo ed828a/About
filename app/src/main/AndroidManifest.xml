@@ -3,32 +3,78 @@
           xmlns:tools="http://schemas.android.com/tools"
           package="com.dew.ed828.aihuaPlayer.about">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+
     <application
-            android:allowBackup="true"
             android:name="com.dew.ed828.aihuaPlayer.EdApp"
-            android:logo="@mipmap/ic_launcher"
+            android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
+            android:logo="@mipmap/ic_launcher"
             android:roundIcon="@mipmap/ic_launcher"
             android:supportsRtl="true"
             android:theme="@style/OpeningTheme"
             tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".activity.AboutActivity">
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN"/>-->
 
-                <!--<category android:name="android.intent.category.LAUNCHER"/>-->
-            <!--</intent-filter>-->
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN"/> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER"/> -->
+            <!-- </intent-filter> -->
         </activity>
         <activity android:name="com.dew.ed828.aihuaPlayer.report.activity.ErrorActivity">
-
         </activity>
         <activity android:name="com.dew.ed828.aihuaPlayer.MainActivity">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN"/> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER"/> -->
+            <!-- </intent-filter> -->
+        </activity>
+        <activity android:name="com.dew.ed828.aihuaPlayer.player.MainVideoPlayerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+
+        <service
+                android:name="com.dew.ed828.aihuaPlayer.player.BackgroundPlayer"
+                android:enabled="true"
+                android:exported="true">
+        </service>
+        <service
+                android:name="com.dew.ed828.aihuaPlayer.player.PopupVideoPlayer"
+                android:enabled="true"
+                android:exported="true">
+        </service>
+
+        <activity android:name="com.dew.ed828.aihuaPlayer.player.activity.PlayVideoActivity">
+        </activity>
+        <activity android:name="com.dew.ed828.aihuaPlayer.player.BackgroundPlayerActivity">
+        </activity>
+        <activity android:name="com.dew.ed828.aihuaPlayer.player.PopupVideoPlayerActivity">
+        </activity>
+        <activity android:name="com.dew.ed828.aihuaPlayer.download.activity.DownloadActivity">
+        </activity>
+
+        <service
+                android:name="com.dew.ed828.aihuaPlayer.download.service.DownloadManagerService"
+                android:enabled="true"
+                android:exported="true">
+        </service>
+
+        <activity android:name="com.dew.ed828.aihuaPlayer.download.activity.ExtSDDownloadFailedActivity">
         </activity>
     </application>
 

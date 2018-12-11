@@ -1,5 +1,6 @@
 package com.dew.ed828.aihuaPlayer.player
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -8,13 +9,23 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.AudioManager
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import com.dew.ed828.aihuaPlayer.about.BuildConfig.DEBUG
 import com.dew.ed828.aihuaPlayer.about.R
 import com.dew.ed828.aihuaPlayer.local.history.HistoryRecordManager
+import com.dew.ed828.aihuaPlayer.player.mediasource.FailedMediaSource
+import com.dew.ed828.aihuaPlayer.player.playback.BasePlayerMediaSession
+import com.dew.ed828.aihuaPlayer.player.playback.CustomTrackSelector
+import com.dew.ed828.aihuaPlayer.player.playback.MediaSourceManager
 import com.dew.ed828.aihuaPlayer.player.playback.PlaybackListener
+import com.dew.ed828.aihuaPlayer.player.playqueue.PlayQueue
+import com.dew.ed828.aihuaPlayer.player.playqueue.PlayQueueAdapter
 import com.dew.ed828.aihuaPlayer.player.playqueue.PlayQueueItem
+import com.dew.ed828.aihuaPlayer.player.resolver.MediaSourceTag
+import com.dew.ed828.aihuaPlayer.player.Helper.*
 import com.dew.ed828.aihuaPlayer.util.Downloader
+import com.dew.ed828.aihuaPlayer.util.SerializedCache
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.Player.*
 import com.google.android.exoplayer2.source.BehindLiveWindowException
@@ -39,10 +50,10 @@ import java.util.concurrent.TimeUnit
  *
  * Created by Edward on 12/2/2018.
  *
+ * Base for the players, joining the common properties
  */
-
-
-abstract class BasicPlayer(protected val context: Context) : Player.EventListener, PlaybackListener, ImageLoadingListener {
+abstract class BasePlayer(protected val context: Context) : Player.EventListener, PlaybackListener,
+    ImageLoadingListener {
 
 
     protected val broadcastReceiver: BroadcastReceiver
@@ -98,8 +109,7 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
                 { error -> Log.e(TAG, "Progress update failure: ", error) })
 
     val isCurrentWindowValid: Boolean
-        get() = (player != null && player!!.duration >= 0
-                && player!!.currentPosition >= 0)
+        get() = (player != null && player!!.duration >= 0 && player!!.currentPosition >= 0)
 
     val videoUrl: String
         get() = if (currentMetadata == null) context.getString(R.string.unknown_content) else currentMetadata!!.metadata.url
@@ -124,7 +134,8 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
             val currentTimeline = player!!.currentTimeline
             val currentWindowIndex = player!!.currentWindowIndex
             if (currentTimeline.isEmpty || currentWindowIndex < 0 ||
-                currentWindowIndex >= currentTimeline.windowCount) {
+                currentWindowIndex >= currentTimeline.windowCount
+            ) {
                 return false
             }
 
@@ -137,19 +148,22 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     // But lets log it anyway. Save is save
     val isLive: Boolean
         get() {
-            if (player == null) return false
-            try {
-                return player!!.isCurrentWindowDynamic
-            } catch (ignored: IndexOutOfBoundsException) {
-                if (DEBUG) Log.d(TAG, "Could not update metadata: " + ignored.message)
-                if (DEBUG) ignored.printStackTrace()
-                return false
+            return if (player == null)
+                false
+            else {
+                try {
+                    player!!.isCurrentWindowDynamic
+                } catch (ignored: IndexOutOfBoundsException) {
+                    Log.d(TAG, "Could not update metadata: ${ignored.message}")
+                    if (DEBUG) ignored.printStackTrace()
+                    false
+                }
             }
-
         }
 
     val isPlaying: Boolean
         get() {
+            player ?: return false
             val state = player!!.playbackState
             return (state == Player.STATE_READY || state == Player.STATE_BUFFERING) && player!!.playWhenReady
         }
@@ -215,7 +229,7 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     }
 
     open fun initPlayer(playOnReady: Boolean) {
-        if (DEBUG) Log.d(TAG, "initPlayer() called with: context = [$context]")
+        Log.d(TAG, "initPlayer() called with: context = [$context]")
 
         player = ExoPlayerFactory.newSimpleInstance(renderFactory, trackSelector, loadControl)
         player!!.addListener(this)
@@ -223,8 +237,7 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
         player!!.setSeekParameters(PlayerHelper.getSeekParameters(context))
 
         audioReactor = AudioReactor(context, player!!)
-        mediaSessionManager = MediaSessionManager(context, player!!,
-            BasePlayerMediaSession(this))
+        mediaSessionManager = MediaSessionManager(context, player!!, BasePlayerMediaSession(this))
 
         registerBroadcastReceiver()
     }
@@ -232,21 +245,24 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     open fun initListeners() {}
 
     open fun handleIntent(intent: Intent?) {
-        if (DEBUG) Log.d(TAG, "handleIntent() called with: intent = [$intent]")
+        Log.d(TAG, "handleIntent() called with: intent = [$intent]")
         if (intent == null) return
 
         // Resolve play queue
         if (!intent.hasExtra(PLAY_QUEUE_KEY)) return
         val intentCacheKey = intent.getStringExtra(PLAY_QUEUE_KEY)
-        val queue = SerializedCache.instance.take(intentCacheKey, PlayQueue::class.java)
-            ?: return
+        val queue = SerializedCache.instance.take(intentCacheKey, PlayQueue::class.java) ?: return
 
         // Resolve append intents
         if (intent.getBooleanExtra(APPEND_ONLY, false) && playQueue != null) {
             val sizeBeforeAppend = playQueue!!.size()
-            playQueue!!.append(queue.streams!!)
+            playQueue!!.append(queue.streams)
 
-            if ((intent.getBooleanExtra(SELECT_ON_APPEND, false) || currentState == STATE_COMPLETED) && queue.streams!!.size > 0) {
+            if ((intent.getBooleanExtra(
+                    SELECT_ON_APPEND,
+                    false
+                ) || currentState == STATE_COMPLETED) && queue.streams.size > 0
+            ) {
                 playQueue!!.index = sizeBeforeAppend
             }
 
@@ -256,55 +272,59 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
         val repeatMode = intent.getIntExtra(REPEAT_MODE, repeatMode)
         val playbackSpeed = intent.getFloatExtra(PLAYBACK_SPEED, playbackSpeed)
         val playbackPitch = intent.getFloatExtra(PLAYBACK_PITCH, playbackPitch)
-        val playbackSkipSilence = intent.getBooleanExtra(PLAYBACK_SKIP_SILENCE,
-            playbackSkipSilence)
+        val playbackSkipSilence = intent.getBooleanExtra(PLAYBACK_SKIP_SILENCE, playbackSkipSilence)
 
         // Good to go...
-        initPlayback(queue, repeatMode, playbackSpeed, playbackPitch, playbackSkipSilence,
-            /*playOnInit=*/true)
+        initPlayback(queue, repeatMode, playbackSpeed, playbackPitch, playbackSkipSilence, /*playOnInit=*/true)
     }
 
-    fun initPlayback(queue: PlayQueue,
-                     @Player.RepeatMode repeatMode: Int,
-                     playbackSpeed: Float,
-                     playbackPitch: Float,
-                     playbackSkipSilence: Boolean,
-                     playOnReady: Boolean) {
+    fun initPlayback(
+        queue: PlayQueue,
+        @Player.RepeatMode repeatMode: Int,
+        playbackSpeed: Float,
+        playbackPitch: Float,
+        playbackSkipSilence: Boolean,
+        playOnReady: Boolean
+    ) {
         destroyPlayer()
         initPlayer(playOnReady)
         this.repeatMode = repeatMode
         setPlaybackParameters(playbackSpeed, playbackPitch, playbackSkipSilence)
 
         playQueue = queue
-        playQueue!!.init()
-        if (playbackManager != null) playbackManager!!.dispose()
+        playQueue?.initialize()
+        playbackManager?.dispose()
         playbackManager = MediaSourceManager(this, playQueue!!)
 
-        if (playQueueAdapter != null) playQueueAdapter!!.dispose()
+        playQueueAdapter?.dispose()
         playQueueAdapter = PlayQueueAdapter(context, playQueue!!)
     }
 
     fun destroyPlayer() {
-        if (DEBUG) Log.d(TAG, "destroyPlayer() called")
-        if (player != null) {
-            player!!.removeListener(this)
-            player!!.stop()
-            player!!.release()
-        }
-        if (isProgressLoopRunning) stopProgressLoop()
-        if (playQueue != null) playQueue!!.dispose()
-        if (audioReactor != null) audioReactor!!.dispose()
-        if (playbackManager != null) playbackManager!!.dispose()
-        if (mediaSessionManager != null) mediaSessionManager!!.dispose()
+        Log.d(TAG, "destroyPlayer() called")
 
-        if (playQueueAdapter != null) {
-            playQueueAdapter!!.unsetSelectedListener()
-            playQueueAdapter!!.dispose()
+        player?.let {
+            it.removeListener(this)
+            it.stop()
+            it.release()
         }
+
+        if (isProgressLoopRunning) stopProgressLoop()
+        playQueue?.dispose()
+        audioReactor?.dispose()
+        playbackManager?.dispose()
+        mediaSessionManager?.dispose()
+
+        playQueueAdapter?.let {
+            it.unsetSelectedListener()
+            it.dispose()
+        }
+
     }
 
     open fun destroy() {
-        if (DEBUG) Log.d(TAG, "destroy() called")
+        Log.d(TAG, "destroy() called")
+
         destroyPlayer()
         unregisterBroadcastReceiver()
 
@@ -319,37 +339,35 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     ///////////////////////////////////////////////////////////////////////////
 
     private fun initThumbnail(url: String?) {
-        if (DEBUG) Log.d(TAG, "Thumbnail - initThumbnail() called")
+        Log.d(TAG, "Thumbnail - initThumbnail() called")
         if (url == null || url.isEmpty()) return
         ImageLoader.getInstance().resume()
-        ImageLoader.getInstance().loadImage(url, ImageDisplayConstants.DISPLAY_THUMBNAIL_OPTIONS,
-            this)
+        ImageLoader.getInstance().loadImage(url, ImageDisplayConstants.DISPLAY_THUMBNAIL_OPTIONS, this)
     }
 
     override fun onLoadingStarted(imageUri: String, view: View?) {
-        if (DEBUG)
-            Log.d(TAG, "Thumbnail - onLoadingStarted() called on: " +
-                    "imageUri = [" + imageUri + "], view = [" + view + "]")
+
+        Log.d(TAG, "Thumbnail - onLoadingStarted() called on: imageUri = [$imageUri], view = [$view]")
+        // do nothing
     }
 
     override fun onLoadingFailed(imageUri: String, view: View, failReason: FailReason) {
-        Log.e(TAG, "Thumbnail - onLoadingFailed() called on imageUri = [$imageUri]",
-            failReason.cause)
+        Log.e(TAG, "Thumbnail - onLoadingFailed() called on imageUri = [$imageUri]", failReason.cause)
+
         currentThumbnail = null
     }
 
     override fun onLoadingComplete(imageUri: String, view: View?, loadedImage: Bitmap?) {
-        if (DEBUG)
-            Log.d(TAG, "Thumbnail - onLoadingComplete() called with: " +
-                    "imageUri = [" + imageUri + "], view = [" + view + "], " +
-                    "loadedImage = [" + loadedImage + "]")
+
+        Log.d(TAG, "Thumbnail - onLoadingComplete() called with: imageUri = [$imageUri], view = [$view], loadedImage = [$loadedImage]")
+
         currentThumbnail = loadedImage
     }
 
     override fun onLoadingCancelled(imageUri: String, view: View) {
-        if (DEBUG)
-            Log.d(TAG, "Thumbnail - onLoadingCancelled() called with: " +
-                    "imageUri = [" + imageUri + "], view = [" + view + "]")
+
+        Log.d(TAG, "Thumbnail - onLoadingCancelled() called with: imageUri = [$imageUri], view = [$view]")
+
         currentThumbnail = null
     }
 
@@ -383,13 +401,14 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
         try {
             context.unregisterReceiver(broadcastReceiver)
         } catch (unregisteredException: IllegalArgumentException) {
-            Log.w(TAG, "Broadcast receiver already unregistered (" + unregisteredException.message + ")")
+            Log.w(TAG, "Broadcast receiver already unregistered: (${unregisteredException.message})")
         }
 
     }
 
     open fun changeState(state: Int) {
-        if (DEBUG) Log.d(TAG, "changeState() called with: state = [$state]")
+        Log.d(TAG, "changeState() called with: state = [$state]")
+
         currentState = state
         when (state) {
             STATE_BLOCKED -> onBlocked()
@@ -402,25 +421,28 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     }
 
     open fun onBlocked() {
-        if (DEBUG) Log.d(TAG, "onBlocked() called")
+        Log.d(TAG, "onBlocked() called")
         if (!isProgressLoopRunning) startProgressLoop()
     }
 
     open fun onPlaying() {
-        if (DEBUG) Log.d(TAG, "onPlaying() called")
+        Log.d(TAG, "onPlaying() called")
         if (!isProgressLoopRunning) startProgressLoop()
     }
 
-    open fun onBuffering() {}
+    open fun onBuffering() {
+        Log.d(TAG, "onBuffering() called")
+    }
 
     open fun onPaused() {
+        Log.d(TAG, "onPaused() called")
         if (isProgressLoopRunning) stopProgressLoop()
     }
 
     open fun onPausedSeek() {}
 
     open fun onCompleted() {
-        if (DEBUG) Log.d(TAG, "onCompleted() called")
+        Log.d(TAG, "onCompleted() called")
         if (playQueue!!.index < playQueue!!.size() - 1) playQueue!!.offsetIndex(+1)
         if (isProgressLoopRunning) stopProgressLoop()
     }
@@ -430,23 +452,20 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     ///////////////////////////////////////////////////////////////////////////
 
     fun onRepeatClicked() {
-        if (DEBUG) Log.d(TAG, "onRepeatClicked() called")
-
-        val mode: Int
-
-        when (repeatMode) {
-            Player.REPEAT_MODE_OFF -> mode = Player.REPEAT_MODE_ONE
-            Player.REPEAT_MODE_ONE -> mode = Player.REPEAT_MODE_ALL
-            Player.REPEAT_MODE_ALL -> mode = Player.REPEAT_MODE_OFF
-            else -> mode = Player.REPEAT_MODE_OFF
-        }
+        val mode: Int = when (repeatMode) {
+                Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ONE
+                Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_ALL
+                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_OFF
+                else -> Player.REPEAT_MODE_OFF
+            }
 
         repeatMode = mode
-        if (DEBUG) Log.d(TAG, "onRepeatClicked() currentRepeatMode = $repeatMode")
+
+        Log.d(TAG, "onRepeatClicked() called: currentRepeatMode = $repeatMode")
     }
 
     open fun onShuffleClicked() {
-        if (DEBUG) Log.d(TAG, "onShuffleClicked() called")
+        Log.d(TAG, "onShuffleClicked() called")
 
         if (player == null) return
         player!!.shuffleModeEnabled = !player!!.shuffleModeEnabled
@@ -479,36 +498,35 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     // ExoPlayer Listener
     ///////////////////////////////////////////////////////////////////////////
 
-    override fun onTimelineChanged(timeline: Timeline, manifest: Any?,
-                                   @Player.TimelineChangeReason reason: Int) {
-        if (DEBUG)
-            Log.d(TAG, "ExoPlayer - onTimelineChanged() called with " +
-                    (if (manifest == null) "no manifest" else "available manifest") + ", " +
-                    "timeline size = [" + timeline.windowCount + "], " +
-                    "reason = [" + reason + "]")
+    override fun onTimelineChanged(
+        timeline: Timeline,
+        manifest: Any?,
+        @Player.TimelineChangeReason reason: Int
+    ) {
+
+        Log.d(TAG, "ExoPlayer - onTimelineChanged() called with " +
+                "${if (manifest == null) "no manifest" else "available manifest"}, " +
+                "timeline size = [${timeline.windowCount}], reason = [$reason]"
+            )
 
         maybeUpdateCurrentMetadata()
     }
 
     override fun onTracksChanged(trackGroups: TrackGroupArray, trackSelections: TrackSelectionArray) {
-        if (DEBUG)
-            Log.d(TAG, "ExoPlayer - onTracksChanged(), " +
-                    "track group size = " + trackGroups.length)
+
+        Log.d(TAG, "ExoPlayer - onTracksChanged(), track group size = ${trackGroups.length}")
 
         maybeUpdateCurrentMetadata()
     }
 
     override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
-        if (DEBUG)
-            Log.d(TAG, "ExoPlayer - playbackParameters(), " +
-                    "speed: " + playbackParameters.speed + ", " +
-                    "pitch: " + playbackParameters.pitch)
+
+        Log.d(TAG, "ExoPlayer - playbackParameters(), speed: ${playbackParameters.speed}, pitch: ${playbackParameters.pitch}")
+
     }
 
     override fun onLoadingChanged(isLoading: Boolean) {
-        if (DEBUG)
-            Log.d(TAG, "ExoPlayer - onLoadingChanged() called with: " +
-                    "isLoading = [" + isLoading + "]")
+        Log.d(TAG, "ExoPlayer - onLoadingChanged() called with: isLoading = [$isLoading]")
 
         if (!isLoading && currentState == STATE_PAUSED && isProgressLoopRunning) {
             stopProgressLoop()
@@ -520,25 +538,21 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     }
 
     override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-        if (DEBUG)
-            Log.d(TAG, "ExoPlayer - onPlayerStateChanged() called with: " +
-                    "playWhenReady = [" + playWhenReady + "], " +
-                    "playbackState = [" + playbackState + "]")
+        Log.d(TAG, "ExoPlayer - onPlayerStateChanged() called with: playWhenReady = [$playWhenReady], playbackState = [$playbackState]")
 
         if (currentState == STATE_PAUSED_SEEK) {
-            if (DEBUG) Log.d(TAG, "ExoPlayer - onPlayerStateChanged() is currently blocked")
+            Log.d(TAG, "ExoPlayer - onPlayerStateChanged() is currently blocked: currentState == STATE_PAUSED_SEEK")
             return
         }
 
         when (playbackState) {
-            Player.STATE_IDLE // 1
-            -> isPrepared = false
-            Player.STATE_BUFFERING // 2
-            -> if (isPrepared) {
+            Player.STATE_IDLE /* 1 */ -> isPrepared = false
+
+            Player.STATE_BUFFERING /* 2 */ -> if (isPrepared) {
                 changeState(STATE_BUFFERING)
             }
-            Player.STATE_READY //3
-            -> {
+
+            Player.STATE_READY /* 3 */ -> {
                 maybeUpdateCurrentMetadata()
                 maybeCorrectSeekPosition()
                 if (!isPrepared) {
@@ -548,8 +562,8 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
                     changeState(if (playWhenReady) STATE_PLAYING else STATE_PAUSED)
                 }
             }
-            Player.STATE_ENDED // 4
-            -> {
+
+            Player.STATE_ENDED /* 4 */ -> {
                 changeState(STATE_COMPLETED)
                 isPrepared = false
             }
@@ -565,9 +579,8 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
         val presetStartPositionMillis = currentInfo.startPosition * 1000
         if (presetStartPositionMillis > 0L) {
             // Has another start position?
-            if (DEBUG)
-                Log.d(TAG, "Playback - Seeking to preset start " +
-                        "position=[" + presetStartPositionMillis + "]")
+            Log.d(TAG, "Playback - Seeking to preset start position=[$presetStartPositionMillis]")
+
             seekTo(presetStartPositionMillis)
         }
     }
@@ -588,10 +601,10 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
      * @see .processSourceError
      * @see Player.EventListener.onPlayerError
      */
+    @SuppressLint("SwitchIntDef")
     override fun onPlayerError(error: ExoPlaybackException) {
-        if (DEBUG)
-            Log.d(TAG, "ExoPlayer - onPlayerError() called with: " +
-                    "error = [" + error + "]")
+        Log.d(TAG, "ExoPlayer - onPlayerError() called with: error = [$error]")
+
         if (errorToast != null) {
             errorToast!!.cancel()
             errorToast = null
@@ -621,25 +634,20 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
         setRecovery()
 
         val cause = error.cause
-        if (error is BehindLiveWindowException) {
-            reload()
-        } else if (cause is UnknownHostException) {
-            playQueue!!.error(/*isNetworkProblem=*/true)
-        } else if (isCurrentWindowValid) {
-            playQueue!!.error(/*isTransitioningToBadStream=*/true)
-        } else if (cause is FailedMediaSource.MediaSourceResolutionException) {
-            playQueue!!.error(/*recoverableWithNoAvailableStream=*/false)
-        } else if (cause is FailedMediaSource.StreamInfoLoadException) {
-            playQueue!!.error(/*recoverableIfLoadFailsWhenNetworkIsFine=*/false)
-        } else {
-            playQueue!!.error(/*noIdeaWhatHappenedAndLetUserChooseWhatToDo=*/true)
+        when {
+            error is BehindLiveWindowException -> reload()
+            cause is UnknownHostException -> playQueue!!.error(/*isNetworkProblem=*/true)
+            isCurrentWindowValid -> playQueue!!.error(/*isTransitioningToBadStream=*/true)
+            cause is FailedMediaSource.MediaSourceResolutionException -> playQueue!!.error(/*recoverableWithNoAvailableStream=*/false)
+            cause is FailedMediaSource.StreamInfoLoadException -> playQueue!!.error(/*recoverableIfLoadFailsWhenNetworkIsFine=*/false)
+            else -> playQueue!!.error(/*noIdeaWhatHappenedAndLetUserChooseWhatToDo=*/true)
         }
     }
 
+    @SuppressLint("SwitchIntDef")
     override fun onPositionDiscontinuity(@Player.DiscontinuityReason reason: Int) {
-        if (DEBUG)
-            Log.d(TAG, "ExoPlayer - onPositionDiscontinuity() called with " +
-                    "reason = [" + reason + "]")
+        Log.d(TAG, "ExoPlayer - onPositionDiscontinuity() called with reason = [$reason]")
+
         if (playQueue == null) return
 
         // Refresh the playback if there is a transition to the next video
@@ -664,15 +672,13 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     }
 
     override fun onRepeatModeChanged(@Player.RepeatMode reason: Int) {
-        if (DEBUG)
-            Log.d(TAG, "ExoPlayer - onRepeatModeChanged() called with: " +
-                    "mode = [" + reason + "]")
+        Log.d(TAG, "ExoPlayer - onRepeatModeChanged() called with: mode = [$reason]")
+        // do nothing
     }
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-        if (DEBUG)
-            Log.d(TAG, "ExoPlayer - onShuffleModeEnabledChanged() called with: " +
-                    "mode = [" + shuffleModeEnabled + "]")
+        Log.d(TAG, "ExoPlayer - onShuffleModeEnabledChanged() called with: mode = [$shuffleModeEnabled]")
+
         if (playQueue == null) return
         if (shuffleModeEnabled) {
             playQueue!!.shuffle()
@@ -682,8 +688,9 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     }
 
     override fun onSeekProcessed() {
-        if (DEBUG) Log.d(TAG, "ExoPlayer - onSeekProcessed() called")
+        Log.d(TAG, "ExoPlayer - onSeekProcessed() called")
     }
+
     ///////////////////////////////////////////////////////////////////////////
     // Playback Listener
     ///////////////////////////////////////////////////////////////////////////
@@ -700,7 +707,7 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
 
     override fun onPlaybackBlock() {
         if (player == null) return
-        if (DEBUG) Log.d(TAG, "Playback - onPlaybackBlock() called")
+        Log.d(TAG, "Playback - onPlaybackBlock() called")
 
         currentItem = null
         currentMetadata = null
@@ -712,7 +719,7 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
 
     override fun onPlaybackUnblock(mediaSource: MediaSource) {
         if (player == null) return
-        if (DEBUG) Log.d(TAG, "Playback - onPlaybackUnblock() called")
+        Log.d(TAG, "Playback - onPlaybackUnblock() called")
 
         if (currentState == STATE_BLOCKED) changeState(STATE_BUFFERING)
 
@@ -720,9 +727,8 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     }
 
     override fun onPlaybackSynchronize(item: PlayQueueItem) {
-        if (DEBUG)
-            Log.d(TAG, "Playback - onPlaybackSynchronize() called with " +
-                    "item=[" + item.title + "], url=[" + item.url + "]")
+        Log.d(TAG, "Playback - onPlaybackSynchronize() called with item=[${item.title}], url=[${item.url}]")
+
         if (player == null || playQueue == null) return
 
         val onPlaybackInitial = currentItem == null
@@ -738,22 +744,14 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
 
         // Check if on wrong window
         if (currentPlayQueueIndex != playQueue!!.index) {
-            Log.e(TAG, "Playback - Play Queue may be desynchronized: item " +
-                    "index=[" + currentPlayQueueIndex + "], " +
-                    "queue index=[" + playQueue!!.index + "]")
+            Log.e(TAG, "Playback - Play Queue may be desynchronized: item index=[$currentPlayQueueIndex], queue index=[${playQueue!!.index}]")
 
             // Check if bad seek position
-        } else if (currentPlaylistSize > 0 && currentPlayQueueIndex >= currentPlaylistSize || currentPlayQueueIndex < 0) {
-            Log.e(TAG, "Playback - Trying to seek to invalid " +
-                    "index=[" + currentPlayQueueIndex + "] with " +
-                    "playlist length=[" + currentPlaylistSize + "]")
+        } else if (currentPlaylistSize in 1..currentPlayQueueIndex || currentPlayQueueIndex < 0) {
+            Log.e(TAG, "Playback - Trying to seek to invalid index=[$currentPlayQueueIndex] with playlist length=[$currentPlaylistSize]")
 
-        } else if (currentPlaylistIndex != currentPlayQueueIndex || onPlaybackInitial ||
-            !isPlaying) {
-            if (DEBUG)
-                Log.d(TAG, "Playback - Rewinding to correct" +
-                        " index=[" + currentPlayQueueIndex + "]," +
-                        " from=[" + currentPlaylistIndex + "], size=[" + currentPlaylistSize + "].")
+        } else if (currentPlaylistIndex != currentPlayQueueIndex || onPlaybackInitial || !isPlaying) {
+            Log.d(TAG, "Playback - Rewinding to correct index=[$currentPlayQueueIndex], from=[$currentPlaylistIndex], size=[$currentPlaylistSize].")
 
             if (item.recoveryPosition != PlayQueueItem.RECOVERY_UNSET) {
                 player!!.seekTo(currentPlayQueueIndex, item.recoveryPosition)
@@ -766,16 +764,15 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
 
     protected open fun onMetadataChanged(tag: MediaSourceTag) {
         val info = tag.metadata
-        if (DEBUG) {
-            Log.d(TAG, "Playback - onMetadataChanged() called, playing: " + info.name)
-        }
+
+        Log.d(TAG, "Playback - onMetadataChanged() called, playing: " + info.name)
 
         initThumbnail(info.thumbnailUrl)
         registerView()
     }
 
     override fun onPlaybackShutdown() {
-        if (DEBUG) Log.d(TAG, "Shutting down...")
+        Log.d(TAG, "Shutting down...")
         destroy()
     }
 
@@ -804,21 +801,19 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     fun showUnrecoverableError(exception: Exception) {
         exception.printStackTrace()
 
-        if (errorToast != null) {
-            errorToast!!.cancel()
-        }
+        errorToast?.cancel()
         errorToast = Toast.makeText(context, R.string.player_unrecoverable_failure, Toast.LENGTH_SHORT)
         errorToast!!.show()
     }
 
     open fun onPrepared(playWhenReady: Boolean) {
-        if (DEBUG) Log.d(TAG, "onPrepared() called with: playWhenReady = [$playWhenReady]")
+        Log.d(TAG, "onPrepared() called with: playWhenReady = [$playWhenReady]")
         if (playWhenReady) audioReactor!!.requestAudioFocus()
         changeState(if (playWhenReady) STATE_PLAYING else STATE_PAUSED)
     }
 
     fun onPlay() {
-        if (DEBUG) Log.d(TAG, "onPlay() called")
+        Log.d(TAG, "onPlay() called")
         if (audioReactor == null || playQueue == null || player == null) return
 
         audioReactor!!.requestAudioFocus()
@@ -835,7 +830,7 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     }
 
     fun onPause() {
-        if (DEBUG) Log.d(TAG, "onPause() called")
+        Log.d(TAG, "onPause() called")
         if (audioReactor == null || player == null) return
 
         audioReactor!!.abandonAudioFocus()
@@ -843,7 +838,7 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     }
 
     fun onPlayPause() {
-        if (DEBUG) Log.d(TAG, "onPlayPause() called")
+        Log.d(TAG, "onPlayPause() called")
 
         if (!isPlaying) {
             onPlay()
@@ -853,22 +848,22 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     }
 
     open fun onFastRewind() {
-        if (DEBUG) Log.d(TAG, "onFastRewind() called")
-        seekBy((-FAST_FORWARD_REWIND_AMOUNT_MILLIS).toLong())
+        Log.d(TAG, "onFastRewind() called")
+        seekBy((-FAST_REWIND_AMOUNT_MILLIS).toLong())
     }
 
     open fun onFastForward() {
-        if (DEBUG) Log.d(TAG, "onFastForward() called")
-        seekBy(FAST_FORWARD_REWIND_AMOUNT_MILLIS.toLong())
+        Log.d(TAG, "onFastForward() called")
+        seekBy(FAST_FORWARD_AMOUNT_MILLIS.toLong())
     }
 
     open fun onPlayPrevious() {
         if (player == null || playQueue == null) return
-        if (DEBUG) Log.d(TAG, "onPlayPrevious() called")
+        Log.d(TAG, "onPlayPrevious() called")
 
         /* If current playback has run for PLAY_PREV_ACTIVATION_LIMIT_MILLIS milliseconds,
-        * restart current track. Also restart the track if the current track
-        * is the first in a queue.*/
+         * restart current track. Also restart the track if the current track
+         * is the first in a queue. */
         if (player!!.currentPosition > PLAY_PREV_ACTIVATION_LIMIT_MILLIS || playQueue!!.index == 0) {
             seekToDefault()
             playQueue!!.offsetIndex(0)
@@ -880,7 +875,7 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
 
     open fun onPlayNext() {
         if (playQueue == null) return
-        if (DEBUG) Log.d(TAG, "onPlayNext() called")
+        Log.d(TAG, "onPlayNext() called")
 
         savePlaybackState()
         playQueue!!.offsetIndex(+1)
@@ -901,12 +896,12 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     }
 
     fun seekTo(positionMillis: Long) {
-        if (DEBUG) Log.d(TAG, "seekBy() called with: position = [$positionMillis]")
+        Log.d(TAG, "seekBy() called with: position = [$positionMillis]")
         if (player != null) player!!.seekTo(positionMillis)
     }
 
     fun seekBy(offsetMillis: Long) {
-        if (DEBUG) Log.d(TAG, "seekBy() called with: offsetMillis = [$offsetMillis]")
+        Log.d(TAG, "seekBy() called with: offsetMillis = [$offsetMillis]")
         seekTo(player!!.currentPosition + offsetMillis)
     }
 
@@ -969,11 +964,11 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
         try {
             metadata = player!!.currentTag as MediaSourceTag?
         } catch (error: IndexOutOfBoundsException) {
-            if (DEBUG) Log.d(TAG, "Could not update metadata: " + error.message)
+            Log.d(TAG, "Could not update metadata: " + error.message)
             if (DEBUG) error.printStackTrace()
             return
         } catch (error: ClassCastException) {
-            if (DEBUG) Log.d(TAG, "Could not update metadata: " + error.message)
+            Log.d(TAG, "Could not update metadata: " + error.message)
             if (DEBUG) error.printStackTrace()
             return
         }
@@ -987,14 +982,15 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
     }
 
     private fun maybeAutoQueueNextStream(currentMetadata: MediaSourceTag) {
-        if (playQueue == null || playQueue!!.index != playQueue!!.size() - 1 ||
-            repeatMode != Player.REPEAT_MODE_OFF ||
-            !PlayerHelper.isAutoQueueEnabled(context))
+        if (playQueue == null || playQueue!!.index != playQueue!!.size() - 1 || repeatMode != Player.REPEAT_MODE_OFF || !PlayerHelper.isAutoQueueEnabled(context))
             return
+
         // auto queue when starting playback on the last item when not repeating
-        val autoQueue = PlayerHelper.autoQueueOf(currentMetadata.metadata,
-            playQueue!!.streams!!)
-        if (autoQueue != null) playQueue!!.append(autoQueue.streams!!)
+        val autoQueue = PlayerHelper.autoQueueOf(
+            currentMetadata.metadata,
+            playQueue!!.streams
+        )
+        if (autoQueue != null) playQueue!!.append(autoQueue.streams)
     }
 
     fun setPlaybackParameters(speed: Float, pitch: Float, skipSilence: Boolean) {
@@ -1045,9 +1041,10 @@ abstract class BasicPlayer(protected val context: Context) : Player.EventListene
         // Player
         ///////////////////////////////////////////////////////////////////////////
 
-        protected const val FAST_FORWARD_REWIND_AMOUNT_MILLIS = 10000 // 10 Seconds
+        protected const val FAST_REWIND_AMOUNT_MILLIS = 10000 // 10 Seconds
+        protected const val FAST_FORWARD_AMOUNT_MILLIS = 15000 // 15 Seconds
         protected const val PLAY_PREV_ACTIVATION_LIMIT_MILLIS = 5000 // 5 seconds
-        protected const val PROGRESS_LOOP_INTERVAL_MILLIS = 500
+        protected const val PROGRESS_LOOP_INTERVAL_MILLIS = 500   // 0.5 seconds
         protected const val RECOVERY_SKIP_THRESHOLD_MILLIS = 3000 // 3 seconds
 
         ///////////////////////////////////////////////////////////////////////////

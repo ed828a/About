@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/action_switch_background"
+          android:orderInCategory="1999"
+          android:title="@string/switch_to_background"
+          app:showAsAction="never"/>
+</menu>

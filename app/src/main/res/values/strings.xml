@@ -22,7 +22,7 @@
     <string name="use_external_video_player_title">Use external video player</string>
     <string name="use_external_video_player_summary">Removes audio at SOME resolutions</string>
     <string name="use_external_audio_player_title">Use external audio player</string>
-    <string name="popup_mode_share_menu_title">NewPipe popup mode</string>
+    <string name="popup_mode_share_menu_title">EdPlayer popup mode</string>
     <string name="rss_button_title" translatable="false">RSS</string>
     <string name="subscribe_button_title">Subscribe</string>
     <string name="subscribed_button_title">Subscribed</string>
@@ -53,7 +53,7 @@
     <string name="download_path_audio_dialog_title">Enter download path for audio files</string>
 
     <string name="autoplay_by_calling_app_title">Autoplay</string>
-    <string name="autoplay_by_calling_app_summary">Plays a video when NewPipe is called from another app</string>
+    <string name="autoplay_by_calling_app_summary">Plays a video when EdPlayer is called from another app</string>
     <string name="default_resolution_title">Default resolution</string>
     <string name="default_popup_resolution_title">Default popup resolution</string>
     <string name="show_higher_resolutions_title">Show higher resolutions</string>
@@ -157,9 +157,9 @@
     <string name="just_once">Just Once</string>
     <string name="file">File</string>
 
-    <string name="notification_channel_id" translatable="false">newpipe</string>
-    <string name="notification_channel_name">NewPipe Notification</string>
-    <string name="notification_channel_description">Notifications for NewPipe background and popup players</string>
+    <string name="notification_channel_id" translatable="false">edplayer</string>
+    <string name="notification_channel_name">EdPlayer Notification</string>
+    <string name="notification_channel_description">Notifications for EdPlayer background and popup players</string>
 
     <string name="unknown_content">[Unknown]</string>
 
@@ -304,7 +304,7 @@
     <string name="msg_server_unsupported">Unsupported server</string>
     <string name="msg_exists">File already exists</string>
     <string name="msg_url_malform">Malformed URL or Internet not available</string>
-    <string name="msg_running">NewPipe Downloading</string>
+    <string name="msg_running">EdPlayer Downloading</string>
     <string name="msg_running_detail">Tap for details</string>
     <string name="msg_wait">Please wait…</string>
     <string name="msg_copied">Copied to clipboard</string>
@@ -441,7 +441,7 @@
 
 
     <!-- Preferred player -->
-    <string name="preferred_open_action_share_menu_title" translatable="false">NewPipe</string>
+    <string name="preferred_open_action_share_menu_title" translatable="false">EdPlayer</string>
     <string name="preferred_open_action_settings_title">Preferred \'open\' action</string>
     <string name="preferred_open_action_settings_summary">Default action when opening content — %s</string>
 
@@ -535,7 +535,8 @@
 
     <!-- GDPR dialog -->
     <string name="start_accept_privacy_policy">In order to comply with the European General Data Protection Regulation
-        (GDPR), we herby draw your attention to Ed YouTube Player\'s privacy policy. Please read it carefully.\nYou must accept it
+        (GDPR), we herby draw your attention to Ed YouTube Player\'s privacy policy. Please read it carefully.\nYou must
+        accept it
         to send us the bug report.
     </string>
     <string name="accept">Accept</string>

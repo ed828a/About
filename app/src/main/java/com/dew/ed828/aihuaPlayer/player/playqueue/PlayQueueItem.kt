@@ -39,6 +39,12 @@ class PlayQueueItem private constructor(
 
         this.recoveryPosition = RECOVERY_UNSET
     }
+    var error: Throwable? = null
+
+    val stream: Single<StreamInfo>
+        get() = ExtractorHelper.getStreamInfo(this.serviceId, this.url, false)
+            .subscribeOn(Schedulers.io())
+            .doOnError { throwable -> error = throwable }
 
     constructor(info: StreamInfo) : this(
         info.name, info.url,
@@ -57,12 +63,7 @@ class PlayQueueItem private constructor(
     )
 
 
-    var error: Throwable? = null
 
-    fun getStream(): Single<StreamInfo> =
-        ExtractorHelper.getStreamInfo(this.serviceId, this.url, false)
-            .subscribeOn(Schedulers.io())
-            .doOnError { throwable -> error = throwable }
 
     companion object {
         const val RECOVERY_UNSET = java.lang.Long.MIN_VALUE

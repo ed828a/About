@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Handler
 import android.util.Log
+import com.dew.ed828.aihuaPlayer.download.activity.ExtSDDownloadFailedActivity
 import com.dew.ed828.aihuaPlayer.download.model.DownloadMission
 import com.dew.ed828.aihuaPlayer.download.util.Utility
 import java.io.File

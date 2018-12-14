@@ -1,20 +1,27 @@
 package com.dew.ed828.aihuaPlayer.download.activity
 
+
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.app.FragmentTransaction
+
 import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewTreeObserver
 import com.dew.ed828.aihuaPlayer.about.R
+import com.dew.ed828.aihuaPlayer.download.fragment.AllMissionsFragment
+import com.dew.ed828.aihuaPlayer.download.fragment.MissionsFragment
+import com.dew.ed828.aihuaPlayer.download.get.DeleteDownloadManager
 import com.dew.ed828.aihuaPlayer.download.service.DownloadManagerService
+import com.dew.ed828.aihuaPlayer.settings.SettingsActivity
 import com.dew.ed828.aihuaPlayer.util.ThemeHelper
 import io.reactivex.Completable
 import io.reactivex.schedulers.Schedulers
 
 class DownloadActivity : AppCompatActivity() {
-    private var mDeleteDownloadManager: DeleteDownloadManager? = null
+    private lateinit var mDeleteDownloadManager: DeleteDownloadManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Service
@@ -37,11 +44,11 @@ class DownloadActivity : AppCompatActivity() {
         }
 
         mDeleteDownloadManager = DeleteDownloadManager(this)
-        mDeleteDownloadManager!!.restoreState(savedInstanceState)
+        mDeleteDownloadManager.restoreState(savedInstanceState)
 
         val fragment = fragmentManager.findFragmentByTag(MISSIONS_FRAGMENT_TAG) as MissionsFragment?
         if (fragment != null) {
-            fragment.setDeleteManager(mDeleteDownloadManager!!)
+            fragment.setDeleteManager(mDeleteDownloadManager)
         } else {
             window.decorView.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
                 override fun onGlobalLayout() {
@@ -61,7 +68,7 @@ class DownloadActivity : AppCompatActivity() {
         val fragment = AllMissionsFragment()
         fragment.setDeleteManager(mDeleteDownloadManager!!)
 
-        fragmentManager.beginTransaction()
+        supportFragmentManager.beginTransaction()
             .replace(R.id.frame, fragment,
                 MISSIONS_FRAGMENT_TAG
             )
@@ -100,7 +107,7 @@ class DownloadActivity : AppCompatActivity() {
     }
 
     private fun deletePending() {
-        Completable.fromAction { mDeleteDownloadManager!!.deletePending() }
+        Completable.fromAction { mDeleteDownloadManager.deletePending() }
             .subscribeOn(Schedulers.io())
             .subscribe()
 
@@ -114,3 +121,4 @@ class DownloadActivity : AppCompatActivity() {
         private const val MISSIONS_FRAGMENT_TAG = "fragment_tag"
     }
 }
+

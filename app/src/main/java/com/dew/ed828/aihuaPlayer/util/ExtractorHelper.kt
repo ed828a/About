@@ -10,6 +10,7 @@ import android.widget.Toast
 import com.dew.ed828.aihuaPlayer.MainActivity
 import com.dew.ed828.aihuaPlayer.about.BuildConfig.DEBUG
 import com.dew.ed828.aihuaPlayer.about.R
+import com.dew.ed828.aihuaPlayer.recaptcha.ReCaptchaActivity
 import com.dew.ed828.aihuaPlayer.report.activity.ErrorActivity
 import com.dew.ed828.aihuaPlayer.report.model.ErrorInfo
 import com.dew.ed828.aihuaPlayer.report.model.UserAction
@@ -211,11 +212,11 @@ object ExtractorHelper {
             when (exception) {
                 is ReCaptchaException -> {
                     Toast.makeText(context, R.string.recaptcha_request_toast, Toast.LENGTH_LONG).show()
-                    // Todo: un-comment those when implementation of ReCaptchaActivity
+
                     // Starting ReCaptcha Challenge Activity
-//                    val intent = Intent(context, ReCaptchaActivity::class.java)
-//                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-//                    context.startActivity(intent)
+                    val intent = Intent(context, ReCaptchaActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(intent)
                 }
                 is IOException -> Toast.makeText(context, R.string.network_error, Toast.LENGTH_LONG).show()
                 is YoutubeStreamExtractor.GemaException -> Toast.makeText(context, R.string.blocked_by_gema, Toast.LENGTH_LONG).show()

@@ -7,7 +7,7 @@ import android.arch.persistence.room.migration.Migration
  *
  * Created by Edward on 12/4/2018.
  *
- * Todo: because new program, should we remove this Migrations ?
+ * Todo: because this is new program, should we remove this Migrations and implement db of downloading in Room ?
  */
 
 object Migrations {

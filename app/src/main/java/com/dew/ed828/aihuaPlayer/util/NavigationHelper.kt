@@ -16,11 +16,15 @@ import android.widget.Toast
 import com.dew.ed828.aihuaPlayer.MainActivity
 import com.dew.ed828.aihuaPlayer.about.R
 import com.dew.ed828.aihuaPlayer.about.activity.AboutActivity
+import com.dew.ed828.aihuaPlayer.download.activity.DownloadActivity
+import com.dew.ed828.aihuaPlayer.fragments.MainFragment
+import com.dew.ed828.aihuaPlayer.local.fragment.*
 import com.dew.ed828.aihuaPlayer.player.*
 import com.dew.ed828.aihuaPlayer.player.BasePlayer.Companion.PLAYBACK_QUALITY
 import com.dew.ed828.aihuaPlayer.player.BasePlayer.Companion.PLAY_QUEUE_KEY
 import com.dew.ed828.aihuaPlayer.player.activity.PlayVideoActivity
 import com.dew.ed828.aihuaPlayer.player.playqueue.PlayQueue
+import com.dew.ed828.aihuaPlayer.settings.SettingsActivity
 import com.nostra13.universalimageloader.core.ImageLoader
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.StreamingService
@@ -42,7 +46,7 @@ object NavigationHelper {
     // Players
     ///////////////////////////////////////////////////////////////////////////
 
-//    @JvmOverloads
+    //    @JvmOverloads
     fun getPlayerIntent(
         context: Context?,
         targetClazz: Class<*>,
@@ -189,13 +193,13 @@ object NavigationHelper {
 
     fun playOnExternalPlayer(context: Context, name: String, artist: String, stream: Stream) {
         val intent = Intent()
-        with(intent){
+        with(intent) {
             action = Intent.ACTION_VIEW
             setDataAndType(Uri.parse(stream.getUrl()), stream.getFormat().getMimeType())
             putExtra(Intent.EXTRA_TITLE, name)
             putExtra("title", name)
             putExtra("artist", artist)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 
         resolveActivityOrAskToInstall(context, intent)
@@ -244,6 +248,7 @@ object NavigationHelper {
     }
 
     fun gotoMainFragment(fragmentManager: FragmentManager) {
+        Log.d(MAIN_FRAGMENT_TAG,"gotoMainFragment() called.")
         ImageLoader.getInstance().clearMemoryCache()
 
         val popped = fragmentManager.popBackStackImmediate(MAIN_FRAGMENT_TAG, 0)
@@ -251,6 +256,8 @@ object NavigationHelper {
     }
 
     fun openMainFragment(fragmentManager: FragmentManager) {
+        Log.d(MAIN_FRAGMENT_TAG,"openMainFragment() called.")
+
         InfoCache.instance.trimCache()
 
         fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
@@ -387,7 +394,7 @@ object NavigationHelper {
 
     fun openStatisticFragment(fragmentManager: FragmentManager) {
         defaultTransaction(fragmentManager)
-            .replace(R.id.fragment_holder, StatisticsPlaylistFragment())
+            .replace(R.id.fragment_holder, HistoryPlaylistFragment())
             .addToBackStack(null)
             .commit()
     }
@@ -551,8 +558,7 @@ object NavigationHelper {
      *
      * For a list of supported urls see the
      * [
- * Kore source code
-](https://github.com/xbmc/Kore/blob/master/app/src/main/AndroidManifest.xml) * .
+     * Kore source code](https://github.com/xbmc/Kore/blob/master/app/src/main/AndroidManifest.xml) * .
      *
      * @param context the context to use
      * @param videoURL the url to the video

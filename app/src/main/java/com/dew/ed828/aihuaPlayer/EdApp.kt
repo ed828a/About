@@ -12,6 +12,7 @@ import com.dew.ed828.aihuaPlayer.report.acra.AcraReportSenderFactory
 import com.dew.ed828.aihuaPlayer.report.activity.ErrorActivity
 import com.dew.ed828.aihuaPlayer.report.model.ErrorInfo
 import com.dew.ed828.aihuaPlayer.report.model.UserAction
+import com.dew.ed828.aihuaPlayer.settings.SettingsActivity
 import com.dew.ed828.aihuaPlayer.util.ExtractorHelper
 import com.dew.ed828.aihuaPlayer.util.ImageDownloader
 import com.dew.ed828.aihuaPlayer.util.Localization
@@ -58,7 +59,8 @@ class EdApp: Application() {
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
 
-        initACRA()
+        // temporarily comment off
+//        initACRA()
     }
 
     override fun onCreate() {
@@ -72,8 +74,7 @@ class EdApp: Application() {
         refWatcher = installLeakCanary()
 
         // Initialize settings first because others inits can use its values
-        // Todo: implement SettingsActivity
-//        SettingsActivity.initSettings(this)
+        SettingsActivity.initSettings(this)
 
         NewPipe.init(downloader,
             Localization.getPreferredExtractorLocal(this))

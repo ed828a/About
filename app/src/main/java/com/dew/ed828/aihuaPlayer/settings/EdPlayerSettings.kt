@@ -35,7 +35,7 @@ object EdPlayerSettings {
     fun getVideoDownloadPath(context: Context): String {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val key = context.getString(R.string.download_path_key)
-        return prefs.getString(key, Environment.DIRECTORY_MOVIES)
+        return prefs.getString(key, Environment.DIRECTORY_MOVIES)!!
     }
 
     fun getAudioDownloadFolder(context: Context): File {
@@ -45,7 +45,7 @@ object EdPlayerSettings {
     fun getAudioDownloadPath(context: Context): String {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val key = context.getString(R.string.download_path_audio_key)
-        return prefs.getString(key, Environment.DIRECTORY_MUSIC)
+        return prefs.getString(key, Environment.DIRECTORY_MUSIC)!!
     }
 
     private fun getDir(context: Context, keyID: Int, defaultDirectoryName: String): File {

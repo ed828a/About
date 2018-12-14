@@ -4,6 +4,7 @@ import android.content.Context
 import android.preference.PreferenceManager
 import android.support.annotation.DrawableRes
 import android.support.annotation.StringRes
+import android.util.Log
 import com.dew.ed828.aihuaPlayer.about.R
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.ServiceList
@@ -20,6 +21,7 @@ import java.util.concurrent.TimeUnit
 
 object ServiceHelper {
     private val DEFAULT_FALLBACK_SERVICE = ServiceList.YouTube
+    private const val TAG = "ServiceHelper"
 
     @DrawableRes
     fun getIcon(serviceId: Int): Int =
@@ -79,6 +81,8 @@ object ServiceHelper {
         } catch (e: ExtractionException) {
             DEFAULT_FALLBACK_SERVICE.serviceId
         }
+
+        Log.d(TAG, "the current Service Name: $serviceName, and the current ServiceId = $serviceId")
 
         return serviceId
     }

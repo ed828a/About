@@ -1,4 +1,4 @@
-package com.dew.ed828.aihuaPlayer.fragments
+package com.dew.ed828.aihuaPlayer.util
 
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView

@@ -20,32 +20,21 @@
             android:supportsRtl="true"
             android:theme="@style/OpeningTheme"
             tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".activity.AboutActivity">
 
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.MAIN"/> -->
+        <activity android:name=".activity.AboutActivity"/>
 
-
-            <!-- <category android:name="android.intent.category.LAUNCHER"/> -->
-            <!-- </intent-filter> -->
-        </activity>
         <activity android:name="com.dew.ed828.aihuaPlayer.report.activity.ErrorActivity">
         </activity>
         <activity android:name="com.dew.ed828.aihuaPlayer.MainActivity">
 
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.MAIN"/> -->
+             <intent-filter>
+             <action android:name="android.intent.action.MAIN"/>
 
 
-            <!-- <category android:name="android.intent.category.LAUNCHER"/> -->
-            <!-- </intent-filter> -->
+             <category android:name="android.intent.category.LAUNCHER"/>
+             </intent-filter>
         </activity>
         <activity android:name="com.dew.ed828.aihuaPlayer.player.MainVideoPlayerActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
         </activity>
 
         <service
@@ -76,6 +65,12 @@
 
         <activity android:name="com.dew.ed828.aihuaPlayer.download.activity.ExtSDDownloadFailedActivity">
         </activity>
+        <activity android:name="com.dew.ed828.aihuaPlayer.settings.SettingsActivity">
+        </activity>
+        <activity android:name="com.dew.ed828.aihuaPlayer.recaptcha.ReCaptchaActivity">
+        </activity>
+
+
     </application>
 
 </manifest>

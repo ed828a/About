@@ -114,8 +114,7 @@ object ListHelper {
             resolution = maxResolution
         }
 
-        // todo: un-comment the following line when resolution == null (null pointer exception)
-//        resolution = resolution ?: context.getString(R.string.default_resolution_key)
+        resolution = resolution ?: context.getString(R.string.default_resolution_key)
 
         return resolution!!
     }

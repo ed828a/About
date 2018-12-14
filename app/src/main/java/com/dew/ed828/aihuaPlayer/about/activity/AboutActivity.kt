@@ -8,6 +8,7 @@ import android.view.MenuItem
 import android.widget.Toast
 import com.dew.ed828.aihuaPlayer.about.R
 import com.dew.ed828.aihuaPlayer.about.adapter.SectionsPagerAdapter
+import com.dew.ed828.aihuaPlayer.util.NavigationHelper
 import com.dew.ed828.aihuaPlayer.util.ThemeHelper
 import kotlinx.android.synthetic.main.activity_about.*
 import java.lang.IllegalArgumentException
@@ -61,15 +62,13 @@ class AboutActivity : AppCompatActivity() {
                 }
 
                 R.id.actionSettings -> {
-                    // Todo: implement NavigationHelper
-//                    NavigationHelper.openSettings(this)
+                    NavigationHelper.openSettings(this)
                     Toast.makeText(this, "you clicked ActionSettings.", Toast.LENGTH_SHORT).show()
                     true
                 }
 
                 R.id.actionShowDownloads ->{
-                    // Todo:
-//                    NavigationHelper.openDownloads(this)
+                    NavigationHelper.openDownloads(this)
                     Toast.makeText(this, "you clicked ActionShowDownloads.", Toast.LENGTH_SHORT).show()
                     throw IllegalArgumentException("This is a testing ErrorActivity")
                     true

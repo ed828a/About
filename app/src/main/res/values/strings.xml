@@ -577,5 +577,8 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="r_100_00mb">100.00MB</string>
+    <string name="xxx_xx">XXX.xx</string>
+    <string name="todo">TODO</string>
 
 </resources>

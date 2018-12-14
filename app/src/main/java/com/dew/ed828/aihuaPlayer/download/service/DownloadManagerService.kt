@@ -21,12 +21,13 @@ import com.dew.ed828.aihuaPlayer.download.model.DownloadMission
 
 import android.support.v4.app.NotificationCompat.Builder
 import com.dew.ed828.aihuaPlayer.download.get.DownloadManagerImpl
+import com.dew.ed828.aihuaPlayer.settings.EdPlayerSettings
 
 // Todo: this service should extend IntentService, because IntentService manage background threads by itself.
 class DownloadManagerService : Service() {
 
 
-    private var mBinder: DMBinder? = null
+    private lateinit var mBinder: DMBinder
     private var mManager: DownloadManager? = null
     private var mNotification: Notification? = null
     private var mHandler: Handler? = null
@@ -54,8 +55,8 @@ class DownloadManagerService : Service() {
         }
         if (mManager == null) {
             val paths = ArrayList<String>(2)
-            paths.add(NewPipeSettings.getVideoDownloadPath(this))
-            paths.add(NewPipeSettings.getAudioDownloadPath(this))
+            paths.add(EdPlayerSettings.getVideoDownloadPath(this))
+            paths.add(EdPlayerSettings.getAudioDownloadPath(this))
             mManager = DownloadManagerImpl(paths, mDataSource!!, this)
 
             Log.d(TAG, "mManager == null, Download directory: $paths")
@@ -106,7 +107,7 @@ class DownloadManagerService : Service() {
     private fun startMissionAsync(url: String?, location: String, name: String, isAudio: Boolean, threads: Int) {
         mHandler!!.post {
             val missionId = mManager!!.startMission(url!!, location, name, isAudio, threads)
-            mBinder!!.onMissionAdded(mManager!!.getMission(missionId))
+            mBinder.onMissionAdded(mManager!!.getMission(missionId))
         }
     }
 

@@ -2,7 +2,8 @@ package com.dew.ed828.aihuaPlayer.local.history
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.preference.PreferenceManager
+import android.support.v7.preference.PreferenceManager
+
 import com.dew.ed828.aihuaPlayer.about.R
 import com.dew.ed828.aihuaPlayer.database.AppDatabase
 import com.dew.ed828.aihuaPlayer.database.EdPlayerDatabase

@@ -104,7 +104,7 @@ class Downloader private constructor(builder: OkHttpClient.Builder) : org.schabi
         val response = client.newCall(request).execute()
         val body = response.body()
 
-        if (response.code() == 429) {
+        if (response.code() == RECAPTCHA_ERROR_CODE) {
             throw ReCaptchaException("reCaptcha Challenge requested")
         }
 
@@ -130,6 +130,7 @@ class Downloader private constructor(builder: OkHttpClient.Builder) : org.schabi
 
     companion object {
         const val USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0"
+        const val RECAPTCHA_ERROR_CODE = 429
 
         lateinit var instance: Downloader
 
@@ -142,7 +143,7 @@ class Downloader private constructor(builder: OkHttpClient.Builder) : org.schabi
             instance = Downloader(builder ?: OkHttpClient.Builder())
 
             return instance
-
         }
     }
 }
+

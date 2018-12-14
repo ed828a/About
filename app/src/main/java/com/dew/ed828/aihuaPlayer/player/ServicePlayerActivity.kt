@@ -17,7 +17,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import com.dew.ed828.aihuaPlayer.about.R
-import com.dew.ed828.aihuaPlayer.fragments.OnScrollBelowItemsListener
+import com.dew.ed828.aihuaPlayer.util.OnScrollBelowItemsListener
 import com.dew.ed828.aihuaPlayer.local.dialog.PlaylistAppendDialog
 import com.dew.ed828.aihuaPlayer.player.Helper.PlaybackParameterDialog
 import com.dew.ed828.aihuaPlayer.player.Helper.PlayerHelper.formatPitch

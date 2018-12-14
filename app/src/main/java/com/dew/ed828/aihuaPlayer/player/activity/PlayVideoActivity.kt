@@ -299,7 +299,7 @@ class PlayVideoActivity : AppCompatActivity() {
 
     companion object {
 
-        //// TODO: 11.09.15 add "choose stream" menu
+        // TODO: 11.09.15 add "choose stream" menu
 
         private val TAG = PlayVideoActivity::class.java.toString()
         const val VIDEO_URL = "video_url"

@@ -27,7 +27,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.*
 import com.dew.ed828.aihuaPlayer.about.R
-import com.dew.ed828.aihuaPlayer.fragments.OnScrollBelowItemsListener
+import com.dew.ed828.aihuaPlayer.util.OnScrollBelowItemsListener
 import com.dew.ed828.aihuaPlayer.player.BasePlayer.Companion.STATE_PLAYING
 import com.dew.ed828.aihuaPlayer.player.VideoPlayer.Companion.DEFAULT_CONTROLS_DURATION
 import com.dew.ed828.aihuaPlayer.player.VideoPlayer.Companion.DEFAULT_CONTROLS_HIDE_TIME
